@@ -35,27 +35,37 @@ try:
         with srch_col1:
             search_type = st.radio(
                 label="How do you want to search?",
-                options=["Vector", "Hybrid"]
+                options=["Vector", "Keyword", "Hybrid"]  # Keyword option added
             )
 
         with srch_col2:
             value_range = st.slider(label="Rating range", value=(0.0, 5.0), step=0.1)
+            year_min = int(st.number_input(label="Year from", value=1960, step=1))
+            year_max = int(st.number_input(label="Year to", value=2023, step=1))
 
-        # Search results - movie summaries
         st.header("Search results")
 
         movie_filter = (
             weaviate_classes.query.Filter.by_property("rating").greater_or_equal(value_range[0])
             & weaviate_classes.query.Filter.by_property("rating").less_or_equal(value_range[1])
+            & weaviate_classes.query.Filter.by_property("year").greater_or_equal(year_min)
+            & weaviate_classes.query.Filter.by_property("year").less_or_equal(year_max)
         )
         synopsis_xref = weaviate_classes.query.QueryReference(
             link_on="hasSynopsis", return_properties=["body"]
         )
 
-        if len(query_string) > 0:  # Only run a search if there is an input
+        if len(query_string) > 0: 
 
             if search_type == "Vector":
                 response = movies.query.near_text(
+                    query=query_string,
+                    filters=movie_filter,
+                    limit=5,
+                    return_references=[synopsis_xref],
+                )
+            elif search_type == "Keyword":
+                response = movies.query.bm25(
                     query=query_string,
                     filters=movie_filter,
                     limit=5,
@@ -88,10 +98,9 @@ try:
 
     with movie_tab:
     # Detailed movie information
-
         st.header("Movie details")
         title_input = st.text_input(label="Enter the movie row ID here (0-120)", value="")
-        if len(title_input) > 0: 
+        if len(title_input) > 0:  # Only do something if there is an input
             movie_uuid = generate_uuid5(int(title_input))
 
             movie = movies.query.fetch_object_by_id(
@@ -99,6 +108,10 @@ try:
                 return_references=[
                     weaviate_classes.query.QueryReference(
                         link_on="hasSynopsis", return_properties=["body"]
+                    ),
+                    # Students to add as a challenge exercise
+                    weaviate_classes.query.QueryReference(
+                        link_on="hasReview", return_properties=["body"]
                     ),
                 ],
             )
@@ -118,6 +131,12 @@ try:
             with st.expander("See synopsis"):
                 st.write(movie.references["hasSynopsis"].objects[0].properties["body"])
 
+            # Display reviews
+            st.subheader("Reviews")
+            for i, r in enumerate(movie.references["hasReview"].objects):
+                st.write(f"**Review {i+1}**")
+                st.write(r.properties["body"])
+
 
     with rec_tab:
     # AI-powered recommendations
@@ -125,6 +144,7 @@ try:
         search_string = st.text_input(label="Recommend me a ...", value="")
         occasion = st.text_input(label="In this context ...", value="any occasion")
 
+        # Only do something if the user fills in the search string and the context
         if len(search_string) > 0 and len(occasion) > 0:
             st.subheader("Recommendations")
 
