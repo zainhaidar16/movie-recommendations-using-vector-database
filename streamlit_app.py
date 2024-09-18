@@ -91,7 +91,7 @@ try:
 
         st.header("Movie details")
         title_input = st.text_input(label="Enter the movie row ID here (0-120)", value="")
-        if len(title_input) > 0:  # Only do something if there is an input
+        if len(title_input) > 0: 
             movie_uuid = generate_uuid5(int(title_input))
 
             movie = movies.query.fetch_object_by_id(
@@ -125,7 +125,6 @@ try:
         search_string = st.text_input(label="Recommend me a ...", value="")
         occasion = st.text_input(label="In this context ...", value="any occasion")
 
-        # Only do something if the user fills in the search string and the context
         if len(search_string) > 0 and len(occasion) > 0:
             st.subheader("Recommendations")
 
@@ -155,4 +154,4 @@ try:
                 with st.expander(f"Movie title: {movie_title}, ID: {movie_id}"):
                     st.write(movie_description)
 finally:
-    client.close()  # Gracefully close the connection
+    client.close() 
