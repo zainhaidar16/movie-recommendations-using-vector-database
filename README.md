@@ -1,19 +1,10 @@
-# 🎈 Blank app template
+# Movie Semantic Search
 
-A simple Streamlit app template for you to modify!
+## Run
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+1. Put your TMDB v3 API key in `.env` as `TMDB_API_KEY`.
+2. Install dependencies with `pip install -r requirements.txt`.
+3. Build the dataset with `python fetch_movies.py`.
+4. Launch the app with `streamlit run streamlit_app.py`.
 
-### How to run it on your own machine
-
-1. Install the requirements
-
-   ```
-   $ pip install -r requirements.txt
-   ```
-
-2. Run the app
-
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+The app uses local ChromaDB persistence in `./chroma_movies` and local poster files in `./posters`.
